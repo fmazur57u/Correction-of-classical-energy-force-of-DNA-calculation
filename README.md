@@ -1,3 +1,3 @@
-# Correction-of-classical-energy-force-of-DNA-calculation
+# mazur_dna_ff
 Code that give a correction of classical energy and force of DNA.
 
