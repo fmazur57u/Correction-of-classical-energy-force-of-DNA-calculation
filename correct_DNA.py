@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue May 19 10:51:41 2020
@@ -9,25 +10,28 @@ import numpy as np
 from MDPlus.core import *
 from scipy.interpolate import interp2d
 
-pdb = 'ggcgac_plainFix_dnaOnly.pdb'
+##pdb file 182D with the intercalating dye molecule removed.
+pdb = '182D_noInterc.pdb'
 
 def correct_dna(pdb):
+
     a = open(pdb, 'r')
     f_list = []
     information_list_crd = []
     information_list_pdb = []
     crd_list = []
     pdb_list = []     
-    del_list_start = [0, 1, 2, 3, 4, 45, 46, 47, 48, 49, 50, 51, 52, 93, 94]
-    del_list_middle = [0, 1, 2, 3, 4, 5, 6, 47, 48, 49, 50, 51, 52, 53, 54, 95]
-    del_list_last = [0, 1, 2, 3, 4, 5, 6, 47, 48, 49, 50, 51, 52, 53, 94]
-    cr_start_list = []
-    cr_middle_list = []
-    cr_last_list = []
-    crd_start = []
-    pdb_start = []
-    crd_last = []
-    pdb_last = []
+    del_list_start  = [0, 1, 2, 3, 4, 45, 46, 47, 48, 49, 50, 51, 52, 93, 94]
+    del_list_middle = [0, 1, 2, 3, 4, 5,   6, 47, 48, 49, 50, 51, 52, 53, 54, 95]
+    del_list_last   = [0, 1, 2, 3, 4, 5,   6, 47, 48, 49, 50, 51, 52, 53, 94]
+    cr_start_list   = []
+    cr_middle_list  = []
+    cr_last_list    = []
+    crd_start       = []
+    pdb_start       = []
+    crd_last        = []
+    pdb_last        = []
+
     #Cut dna for obtain dyads and delete some atom of base
     for line in a:
         as_Liste = line.split(" ")
@@ -190,7 +194,9 @@ def correct_dna(pdb):
     #Correction[0] = energy correction and Correction[1] = force correction
     Correction = [Correction_E_dna, Correction_F_dna]
     return Correction
-        
-        
-print(correct_dna(pdb))
+     
+##test code, does not run when this code is imported as a module, only when 
+##called as an appli   
+if __name__ == "__main__":  
+     print(correct_dna(pdb))
 
