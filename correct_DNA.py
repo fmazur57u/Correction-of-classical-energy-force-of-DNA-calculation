@@ -38,7 +38,7 @@ def correct_dna(pdb):
         as_List = [elem for elem in as_Liste if elem.strip()]
         if as_List[0] == "ATOM":
             if as_List[2] not in ['N9', 'C8', 'N7', 'H8', 'O6', 'H1', 'N2', 'H21', 'H22', 'O2', 'H6', 'H5', 'N4', 'H41', 'H42', 'H2', 'N6', 'H61', 'H62', 'H3', 'O4', 'C7', 'H71', 'H72', 'H73']: 
-                information_list_crd.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-8], as_List[len(as_List)-9], float(as_List[len(as_List)-6]), float(as_List[len(as_List)-5]), float(as_List[len(as_List)-4])])
+                information_list_crd.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-9], as_List[len(as_List)-10], float(as_List[len(as_List)-6]), float(as_List[len(as_List)-5]), float(as_List[len(as_List)-4])])
                 information_list_pdb.append(line)
 
 
@@ -57,7 +57,7 @@ def correct_dna(pdb):
         for i in information_list_pdb:
             as_Liste = i.split(" ")
             as_List = [elem for elem in as_Liste if elem.strip()]
-            if float(as_List[4]) == p -1 or float(as_List[4]) == p or float(as_List[4]) == (max_index + 1) - p or float(as_List[4]) == (max_index + 1) - (p - 1):
+            if float(as_List[5]) == p -1 or float(as_List[5]) == p or float(as_List[5]) == (max_index + 1) - p or float(as_List[5]) == (max_index + 1) - (p - 1):
                 residue_list_pdb.append(i)
         pdb_list.append(residue_list_pdb)
 
