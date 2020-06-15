@@ -33,12 +33,28 @@ def correct_dna(pdb):
     pdb_last        = []
 
     #Cut dna for obtain dyads and delete some atom of base
+
+    ##only use generic base atoms: limited training set.
+    use_atoms = {'N9', 'C8', 'N7', 'H8', 'O6', \
+                     'H1', 'N2', 'H21', 'H22', 'O2', \
+                     'H6', 'H5', 'N4',  'H41', 'H42',\
+                     'H2', 'N6', 'H61', 'H62', 'H3', \
+                     'O4', 'C7', 'H71', 'H72', 'H73'}
+
     for line in a:
         as_Liste = line.split(" ")
         as_List = [elem for elem in as_Liste if elem.strip()]
         if as_List[0] == "ATOM":
-            if as_List[2] not in ['N9', 'C8', 'N7', 'H8', 'O6', 'H1', 'N2', 'H21', 'H22', 'O2', 'H6', 'H5', 'N4', 'H41', 'H42', 'H2', 'N6', 'H61', 'H62', 'H3', 'O4', 'C7', 'H71', 'H72', 'H73']: 
-                information_list_crd.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-9], as_List[len(as_List)-10], float(as_List[len(as_List)-6]), float(as_List[len(as_List)-5]), float(as_List[len(as_List)-4])])
+            if as_List[2] not in use_atoms: 
+
+               
+                ##wrong assumption here that the pdb lines are space separated, see the spec at
+                ## pdb.org
+                ## :  https://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
+                information_list_crd.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-9],\
+                                     as_List[len(as_List)-10], float(as_List[len(as_List)-6]),\
+                               float(as_List[len(as_List)-5]), float(as_List[len(as_List)-4])])
+
                 information_list_pdb.append(line)
 
 
@@ -46,31 +62,44 @@ def correct_dna(pdb):
     max_index = last_information[0]
 
 
-
+    ##not clear what is happening here
     for p in range(int(2), int((max_index/2) + 2), int(2)):
         residue_list_crd = []
         residue_list_pdb = []
         for i in information_list_crd:
-            if i[0] == p - 1 or i[0] == p or i[0] == (max_index + 1) - p or i[0] == (max_index + 1) - (p - 1): 
+            if i[0] == p - 1 or\
+               i[0] == p     or\
+               i[0] == (max_index + 1) - p or\
+               i[0] == (max_index + 1) - (p - 1): 
+
                 residue_list_crd.append([i[3], i[4], i[5]])
+
         crd_list.append(residue_list_crd)
         for i in information_list_pdb:
             as_Liste = i.split(" ")
             as_List = [elem for elem in as_Liste if elem.strip()]
-            if float(as_List[5]) == p -1 or float(as_List[5]) == p or float(as_List[5]) == (max_index + 1) - p or float(as_List[5]) == (max_index + 1) - (p - 1):
-                residue_list_pdb.append(i)
+            if float(as_List[5]) == p -1 or \
+               float(as_List[5]) == p or \
+               float(as_List[5]) == (max_index + 1) - p or \
+               float(as_List[5]) == (max_index + 1) - (p - 1):
+                    residue_list_pdb.append(i)
         pdb_list.append(residue_list_pdb)
 
     #Delete some other atom in backbone for obtain a dyads with same number of atom
     for cr_start in range(len(crd_list[0])):
         cr_start_list.append(cr_start)
 
+    ## If I remove the zero'th item in a list and then the first item,
+    ## is that the same as removing the first item and then the zeroth item?
+    ##
+    ## It looks as if you have made this mistake here.
     for i_start_del in del_list_start:
         cr_start_list.remove(i_start_del)
 
     for i_start in cr_start_list:
         crd_start.append(crd_list[0][i_start])
         pdb_start.append(pdb_list[0][i_start])   
+
     np.savetxt('dyads_dna[0].pdb', pdb_start, fmt='%s')
     np.savetxt('dyads_dna[0].crd', crd_start)
     f0 = Fasu('dyads_dna[0].pdb', 'dyads_dna[0].crd')
