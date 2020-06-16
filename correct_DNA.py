@@ -35,7 +35,7 @@ def correct_dna(pdb):
     #Cut dna for obtain dyads and delete some atom of base
 
     ##only use generic base atoms: limited training set.
-    use_atoms = {'N9', 'C8', 'N7', 'H8', 'O6', \
+    dont_use_atoms = {'N9', 'C8', 'N7', 'H8', 'O6', \
                      'H1', 'N2', 'H21', 'H22', 'O2', \
                      'H6', 'H5', 'N4',  'H41', 'H42',\
                      'H2', 'N6', 'H61', 'H62', 'H3', \
@@ -45,7 +45,7 @@ def correct_dna(pdb):
         as_Liste = line.split(" ")
         as_List = [elem for elem in as_Liste if elem.strip()]
         if as_List[0] == "ATOM":
-            if as_List[2] not in use_atoms: 
+            if as_List[2] not in dont_use_atoms: 
 
                
                 ##wrong assumption here that the pdb lines are space separated, see the spec at
@@ -63,6 +63,7 @@ def correct_dna(pdb):
 
 
     ##not clear what is happening here
+    #Loop for create a dyads_list for crd format and for pdb format
     for p in range(int(2), int((max_index/2) + 2), int(2)):
         residue_list_crd = []
         residue_list_pdb = []
