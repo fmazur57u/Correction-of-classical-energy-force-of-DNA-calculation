@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue May 19 10:51:41 2020
@@ -9,9 +8,13 @@ Created on Tue May 19 10:51:41 2020
 import numpy as np
 from MDPlus.core import *
 from scipy.interpolate import interp2d
+import mdtraj as md
 
-##pdb file 182D with the intercalating dye molecule removed.
-pdb = '182D_noInterc.pdb'
+
+
+traj = md.load('Florian_dna/182D_noInterc_1.pdb')
+traj.save('Florian_dna/182D_noInterc_2.pdb')
+
 
 def correct_dna(pdb):
 
@@ -21,9 +24,9 @@ def correct_dna(pdb):
     information_list_pdb = []
     crd_list = []
     pdb_list = []     
-    del_list_start  = [0, 1, 2, 3, 4, 45, 46, 47, 48, 49, 50, 51, 52, 93, 94]
-    del_list_middle = [0, 1, 2, 3, 4, 5,   6, 47, 48, 49, 50, 51, 52, 53, 54, 95]
-    del_list_last   = [0, 1, 2, 3, 4, 5,   6, 47, 48, 49, 50, 51, 52, 53, 94]
+    del_list_start  = [0, 1, 31, 32, 33, 34, 35]
+    del_list_middle = [0, 1, 2, 3, 4, 34, 35, 36, 37, 38]
+    del_list_last   = [0, 1, 2, 3, 4, 34, 35]
     cr_start_list   = []
     cr_middle_list  = []
     cr_last_list    = []
@@ -45,18 +48,15 @@ def correct_dna(pdb):
         as_Liste = line.split(" ")
         as_List = [elem for elem in as_Liste if elem.strip()]
         if as_List[0] == "ATOM":
-            if as_List[2] not in dont_use_atoms: 
+            #We don't use hydrogen atom for use RX structure or NMR structure or other
+            if as_List[2] not in dont_use_atoms and\
+                as_List[-1] != "H": 
 
-               
-                ##wrong assumption here that the pdb lines are space separated, see the spec at
-                ## pdb.org
-                ## :  https://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
                 information_list_crd.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-9],\
                                      as_List[len(as_List)-10], float(as_List[len(as_List)-6]),\
                                float(as_List[len(as_List)-5]), float(as_List[len(as_List)-4])])
 
                 information_list_pdb.append(line)
-
 
     last_information = information_list_crd[-1]
     max_index = last_information[0]
@@ -105,6 +105,8 @@ def correct_dna(pdb):
     np.savetxt('dyads_dna[0].crd', crd_start)
     f0 = Fasu('dyads_dna[0].pdb', 'dyads_dna[0].crd')
     f_list.append(f0)
+    
+    
     for cr_middle in range(len(crd_list[1])):
         cr_middle_list.append(cr_middle)
     
@@ -133,6 +135,7 @@ def correct_dna(pdb):
         pdb_last.append(pdb_list[-1][i_last])
     np.savetxt('dyads_dna[-1].pdb', pdb_last, fmt='%s')
     np.savetxt('dyads_dna[-1].crd', crd_last)
+
     f_last = Fasu('dyads_dna[-1].pdb', 'dyads_dna[-1].crd')
     f_list.append(f_last)
     e0_space = np.loadtxt('e0_space_common.txt')
@@ -224,9 +227,10 @@ def correct_dna(pdb):
     #Correction[0] = energy correction and Correction[1] = force correction
     Correction = [Correction_E_dna, Correction_F_dna]
     return Correction
-     
+
 ##test code, does not run when this code is imported as a module, only when 
 ##called as an appli   
 if __name__ == "__main__":  
      print(correct_dna(pdb))
-
+       
+    

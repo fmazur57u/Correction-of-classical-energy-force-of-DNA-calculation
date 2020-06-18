@@ -15,15 +15,15 @@ import mdtraj as md
 pdb = 'Florian_dna/ggcgac_plainFix_dnaOnly.pdb'
 top = 'Florian_dna/ggcgac_plainFix_dnaOnly.top'
 nc = 'Florian_dna/ggcgac_plainFix_dnaOnly.nc'
+n = 100
 
-def correction_DNA_energy(pdb, top, nc):
-
+def correction_DNA_energy(pdb, top, nc, n):
     from correct_DNA import correct_dna    
     correct = []
     #Load the trajectory
     traj = md.load(nc, top = pdb)
     #Selection of each frame of trajectory
-    for i in range(len(traj)): 
+    for i in range(int(0), len(traj), int(len(traj)/n)): 
         #Creation of files for calculation for each frame
         traj[i].save('frame_DNA.ncrst')
         traj[i].save('frame_DNA.pdb')
@@ -45,4 +45,4 @@ def correction_DNA_energy(pdb, top, nc):
         correct.append(ene + correction[0])
     return correct
 
-print(correction_DNA_energy(pdb, top, nc))
+print(correction_DNA_energy(pdb, top, nc, n))
