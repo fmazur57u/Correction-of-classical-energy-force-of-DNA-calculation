@@ -11,11 +11,6 @@ from scipy.interpolate import interp2d
 import mdtraj as md
 
 
-
-traj = md.load('Florian_dna/182D_noInterc_1.pdb')
-traj.save('Florian_dna/182D_noInterc_2.pdb')
-
-
 def correct_dna(pdb):
 
     a = open(pdb, 'r')
