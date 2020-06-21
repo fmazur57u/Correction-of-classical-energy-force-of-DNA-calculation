@@ -10,14 +10,14 @@ from MDPlus.core import *
 from scipy.interpolate import interp2d
 import mdtraj as md
 
+pdb = 'Florian_dna/182D_noInterc.pdb'
 
 def correct_dna(pdb):
 
     a = open(pdb, 'r')
     f_list = []
-    information_list_crd = []
+    information_list= []
     information_list_pdb = []
-    crd_list = []
     pdb_list = []     
     del_list_start  = [0, 1, 31, 32, 33, 34, 35]
     del_list_middle = [0, 1, 2, 3, 4, 34, 35, 36, 37, 38]
@@ -25,52 +25,38 @@ def correct_dna(pdb):
     cr_start_list   = []
     cr_middle_list  = []
     cr_last_list    = []
-    crd_start       = []
     pdb_start       = []
-    crd_last        = []
     pdb_last        = []
 
     #Cut dna for obtain dyads and delete some atom of base
 
     ##only use generic base atoms: limited training set.
-    dont_use_atoms = {'N9', 'C8', 'N7', 'H8', 'O6', \
-                     'H1', 'N2', 'H21', 'H22', 'O2', \
-                     'H6', 'H5', 'N4',  'H41', 'H42',\
-                     'H2', 'N6', 'H61', 'H62', 'H3', \
-                     'O4', 'C7', 'H71', 'H72', 'H73'}
+    use_atoms = {"O5'", "C5'", "C4'", "O4'", "C1'", "P",\
+                 "OP1", "OP2", "C5",  "C6",  "N1",  "C2",\
+                 "N3", "C4", "C3'", "C2'", "O3'"}
 
+    dont_use_atom = {"C5'", "O5'", "P", "OP1", "OP2"}
     for line in a:
         as_Liste = line.split(" ")
         as_List = [elem for elem in as_Liste if elem.strip()]
         if as_List[0] == "ATOM":
             #We don't use hydrogen atom for use RX structure or NMR structure or other
-            if as_List[2] not in dont_use_atoms and\
-                as_List[-1] != "H": 
+            if as_List[2] in use_atoms:
 
-                information_list_crd.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-9],\
+                information_list.append([float(as_List[len(as_List)-7]), as_List[len(as_List)-9],\
                                      as_List[len(as_List)-10], float(as_List[len(as_List)-6]),\
                                float(as_List[len(as_List)-5]), float(as_List[len(as_List)-4])])
 
                 information_list_pdb.append(line)
 
-    last_information = information_list_crd[-1]
+    last_information = information_list[-1]
     max_index = last_information[0]
 
 
     ##not clear what is happening here
     #Loop for create a dyads_list for crd format and for pdb format
     for p in range(int(2), int((max_index/2) + 2), int(2)):
-        residue_list_crd = []
         residue_list_pdb = []
-        for i in information_list_crd:
-            if i[0] == p - 1 or\
-               i[0] == p     or\
-               i[0] == (max_index + 1) - p or\
-               i[0] == (max_index + 1) - (p - 1): 
-
-                residue_list_crd.append([i[3], i[4], i[5]])
-
-        crd_list.append(residue_list_crd)
         for i in information_list_pdb:
             as_Liste = i.split(" ")
             as_List = [elem for elem in as_Liste if elem.strip()]
@@ -80,59 +66,71 @@ def correct_dna(pdb):
                float(as_List[5]) == (max_index + 1) - (p - 1):
                     residue_list_pdb.append(i)
         pdb_list.append(residue_list_pdb)
-
+    np.savetxt('pdb_start.pdb', pdb_list[0], fmt = '%s')
+    
+    start = md.load('pdb_start.pdb')
+    start.save('pdb_start.pdb')
     #Delete some other atom in backbone for obtain a dyads with same number of atom
-    for cr_start in range(len(crd_list[0])):
-        cr_start_list.append(cr_start)
-
-    ## If I remove the zero'th item in a list and then the first item,
-    ## is that the same as removing the first item and then the zeroth item?
-    ##
-    ## It looks as if you have made this mistake here.
-    for i_start_del in del_list_start:
-        cr_start_list.remove(i_start_del)
-
-    for i_start in cr_start_list:
-        crd_start.append(crd_list[0][i_start])
-        pdb_start.append(pdb_list[0][i_start])   
-
-    np.savetxt('dyads_dna[0].pdb', pdb_start, fmt='%s')
-    np.savetxt('dyads_dna[0].crd', crd_start)
-    f0 = Fasu('dyads_dna[0].pdb', 'dyads_dna[0].crd')
-    f_list.append(f0)
+    o = open('pdb_start.pdb', 'r')
+    for line in o:
+        as_Liste = line.split(" ")
+        as_List = [elem for elem in as_Liste if elem.strip()]
+        if as_List[0] == "ATOM":
+            if float(as_List[5]) != 1 and \
+               float(as_List[5]) != max_index - 1:
+                   pdb_start.append(line)
+                   
+            if float(as_List[5]) == 1 or float(as_List[5]) == max_index - 1:
+                   if as_List[2] not in dont_use_atom:
+                       pdb_start.append(line)
+    if len(pdb_start) == 58:
+        np.savetxt('dyads_dna[0].pdb', pdb_start, fmt='%s')
+        f0 = Fasu('dyads_dna[0].pdb')
+        f_list.append(f0)
     
     
-    for cr_middle in range(len(crd_list[1])):
-        cr_middle_list.append(cr_middle)
-    
-    for i_middle_del in del_list_middle:
-        cr_middle_list.remove(i_middle_del)
-    
-    for i_dyads_middle in range(1, len(crd_list) - 1):
-        crd_middle = []
+    for i_dyads_middle in range(1, len(pdb_list) - 1):
+        np.savetxt('pdb_middle.pdb', pdb_list[i_dyads_middle], fmt='%s')
+        middle = md.load('pdb_middle.pdb')
+        middle.save('pdb_middle.pdb')
+        o = open('pdb_middle.pdb', 'r')
         pdb_middle = []
-        for i_middle in cr_middle_list:
-            crd_middle.append(crd_list[i_dyads_middle][i_middle])
-            pdb_middle.append(pdb_list[i_dyads_middle][i_middle])
-        np.savetxt('dyads_dna_%f.pdb' % i_dyads_middle, pdb_middle, fmt='%s')
-        np.savetxt('dyads_dna_%f.crd' % i_dyads_middle, crd_middle)
-        f_m = Fasu('dyads_dna_%f.pdb' % i_dyads_middle, 'dyads_dna_%f.crd' % i_dyads_middle)
-        f_list.append(f_m)
+        for line in o:
+            as_Liste = line.split(" ")
+            as_List = [elem for elem in as_Liste if elem.strip()]
+            if as_List[0] == "ATOM":
+                if int(as_List[5])%2 ==0:
+                    pdb_middle.append(line)
+                else:
+                    if as_List[2] not in dont_use_atom:
+                        pdb_middle.append(line)
+        if len(pdb_middle) == 58: 
+            np.savetxt('dyads_dna_%f.pdb' % i_dyads_middle, pdb_middle, fmt='%s')
+            f_m = Fasu('dyads_dna_%f.pdb' % i_dyads_middle)
+            f_list.append(f_m)
     
-    for cr_last in range(len(crd_list[-1])):
-        cr_last_list.append(cr_last)   
-
-    for i_last_del in del_list_last:
-        cr_last_list.remove(i_last_del)
-
-    for i_last in cr_last_list:
-        crd_last.append(crd_list[-1][i_last])
-        pdb_last.append(pdb_list[-1][i_last])
-    np.savetxt('dyads_dna[-1].pdb', pdb_last, fmt='%s')
-    np.savetxt('dyads_dna[-1].crd', crd_last)
-
-    f_last = Fasu('dyads_dna[-1].pdb', 'dyads_dna[-1].crd')
-    f_list.append(f_last)
+    np.savetxt('pdb_last.pdb', pdb_list[-1], fmt = '%s')
+    
+    last = md.load('pdb_last.pdb')
+    last.save('pdb_last.pdb')
+    #Delete some other atom in backbone for obtain a dyads with same number of atom
+    o = open('pdb_last.pdb', 'r')
+    for line in o:
+        as_Liste = line.split(" ")
+        as_List = [elem for elem in as_Liste if elem.strip()]
+        if as_List[0] == "ATOM":
+            if int(as_List[5]) != int(max_index // 2) - 1 and \
+               int(as_List[5]) != int(max_index // 2) + 1:
+                   pdb_last.append(line)
+                   
+            if int(as_List[5]) == int(max_index // 2) - 1 or int(as_List[5]) == int(max_index // 2) + 1:
+                   if as_List[2] not in dont_use_atom:
+                       pdb_last.append(line)
+    
+    if len(pdb_last) == 58:
+        np.savetxt('dyads_dna[-1].pdb', pdb_last, fmt='%s')
+        f_last = Fasu('dyads_dna[-1].pdb')
+        f_list.append(f_last)
     e0_space = np.loadtxt('e0_space_common.txt')
     e1_space = np.loadtxt('e1_space_common.txt')
     correct_E = []
