@@ -10,6 +10,7 @@ from MDPlus.core import *
 from scipy.interpolate import interp2d
 import mdtraj as md
 
+
 pdb = 'Florian_dna/182D_noInterc.pdb'
 
 def correct_dna(pdb):
@@ -19,23 +20,18 @@ def correct_dna(pdb):
     information_list= []
     information_list_pdb = []
     pdb_list = []     
-    del_list_start  = [0, 1, 31, 32, 33, 34, 35]
-    del_list_middle = [0, 1, 2, 3, 4, 34, 35, 36, 37, 38]
-    del_list_last   = [0, 1, 2, 3, 4, 34, 35]
-    cr_start_list   = []
-    cr_middle_list  = []
-    cr_last_list    = []
     pdb_start       = []
     pdb_last        = []
 
     #Cut dna for obtain dyads and delete some atom of base
 
     ##only use generic base atoms: limited training set.
-    use_atoms = {"O5'", "C5'", "C4'", "O4'", "C1'", "P",\
-                 "OP1", "OP2", "C5",  "C6",  "N1",  "C2",\
+    use_atoms = {"O5'", "C5'", "C4'", "O4'", "C1'",\
+                 "P", "C5",  "C6",  "N1",  "C2",\
                  "N3", "C4", "C3'", "C2'", "O3'"}
 
-    dont_use_atom = {"C5'", "O5'", "P", "OP1", "OP2"}
+    dont_use_atom_1 = {"C5'", "O5'", "P"}
+    dont_use_atom_2 = {"O3'"}
     for line in a:
         as_Liste = line.split(" ")
         as_List = [elem for elem in as_Liste if elem.strip()]
@@ -78,12 +74,13 @@ def correct_dna(pdb):
         if as_List[0] == "ATOM":
             if float(as_List[5]) != 1 and \
                float(as_List[5]) != max_index - 1:
-                   pdb_start.append(line)
+                   if as_List[2] not in dont_use_atom_2:
+                       pdb_start.append(line)
                    
             if float(as_List[5]) == 1 or float(as_List[5]) == max_index - 1:
-                   if as_List[2] not in dont_use_atom:
+                   if as_List[2] not in dont_use_atom_1:
                        pdb_start.append(line)
-    if len(pdb_start) == 58:
+    if len(pdb_start) == 52:
         np.savetxt('dyads_dna[0].pdb', pdb_start, fmt='%s')
         f0 = Fasu('dyads_dna[0].pdb')
         f_list.append(f0)
@@ -100,11 +97,12 @@ def correct_dna(pdb):
             as_List = [elem for elem in as_Liste if elem.strip()]
             if as_List[0] == "ATOM":
                 if int(as_List[5])%2 ==0:
-                    pdb_middle.append(line)
-                else:
-                    if as_List[2] not in dont_use_atom:
+                    if as_List[2] not in dont_use_atom_2:
                         pdb_middle.append(line)
-        if len(pdb_middle) == 58: 
+                else:
+                    if as_List[2] not in dont_use_atom_1:
+                        pdb_middle.append(line)
+        if len(pdb_middle) == 52: 
             np.savetxt('dyads_dna_%f.pdb' % i_dyads_middle, pdb_middle, fmt='%s')
             f_m = Fasu('dyads_dna_%f.pdb' % i_dyads_middle)
             f_list.append(f_m)
@@ -121,13 +119,14 @@ def correct_dna(pdb):
         if as_List[0] == "ATOM":
             if int(as_List[5]) != int(max_index // 2) - 1 and \
                int(as_List[5]) != int(max_index // 2) + 1:
-                   pdb_last.append(line)
+                   if as_List[2] not in dont_use_atom_2:
+                       pdb_last.append(line)
                    
             if int(as_List[5]) == int(max_index // 2) - 1 or int(as_List[5]) == int(max_index // 2) + 1:
-                   if as_List[2] not in dont_use_atom:
+                   if as_List[2] not in dont_use_atom_1:
                        pdb_last.append(line)
     
-    if len(pdb_last) == 58:
+    if len(pdb_last) == 52:
         np.savetxt('dyads_dna[-1].pdb', pdb_last, fmt='%s')
         f_last = Fasu('dyads_dna[-1].pdb')
         f_list.append(f_last)
