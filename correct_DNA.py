@@ -135,7 +135,7 @@ def correct_dna(pdb):
     correct_E = []
     correct_F = []
     #Calulation of Fasu of reference
-    ref_fasu = Fasu('dyads_GC_0.000000.pdb', 'traj_0.000000.crd')
+    ref_fasu = Fasu('dyads_GC_0.000000.pdb')
     #loading of coordinates matrix and matrix of smooth surface
     coords = np.loadtxt('PCA_list_common.txt')
     E_matrix1 = np.loadtxt('E_matrix_e0_e1_common.txt')
