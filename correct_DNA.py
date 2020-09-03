@@ -59,7 +59,7 @@ def correct_dna(pdb):
         if information_residue[i] != information_residue[i - 1]:
             i_residue.append(information_residue[i])
 
-    #Loop for create a dyads_list for crd format and for pdb format
+    #Loop for create a dyads_list for pdb format
     for p in range(int(0), int(len(i_residue)/2), int(2)):
         residue_list_pdb = []
         for i in information_list_pdb:
